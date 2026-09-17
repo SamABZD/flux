@@ -96,6 +96,28 @@
   font-weight: var(--weight-semibold);
   letter-spacing: var(--tracking-heading);
 }
+.home-card-carousel {
+  display: flex;
+  gap: var(--space-4);
+  width: 100%;
+  margin: 0;
+  padding: 0;
+  overflow-x: auto;
+  overscroll-behavior-inline: contain;
+  scroll-snap-type: inline mandatory;
+  scrollbar-width: none;
+  list-style: none;
+  -webkit-overflow-scrolling: touch;
+}
+.home-card-carousel::-webkit-scrollbar {
+  display: none;
+}
+.home-card-slide {
+  flex: 0 0 100%;
+  min-width: 0;
+  scroll-snap-align: start;
+  scroll-snap-stop: always;
+}
 .home-card-link {
   display: block;
   color: var(--color-text);
@@ -129,6 +151,11 @@
   margin-top: 2px;
   color: var(--color-muted);
   font-size: var(--text-xs);
+}
+.home-card-hint {
+  margin-top: var(--space-3);
+  font-size: var(--text-xs);
+  text-align: center;
 }
 .home-card-skeleton {
   width: 100%;

@@ -18,15 +18,14 @@ import { DashboardCard } from '@/features/workspace/dashboard-card';
 
 function HomeCard() {
   const query = useGetCardsQuery();
-  const available = query.data?.filter(
-    (card) => card.status !== 'TERMINATED' && card.status !== 'EXPIRED',
-  );
-  const card = available?.find((item) => item.type === 'PHYSICAL') ?? available?.[0];
+  const active = query.data
+    ?.filter((card) => card.status !== 'TERMINATED' && card.status !== 'EXPIRED')
+    .sort((a, b) => Number(b.type === 'PHYSICAL') - Number(a.type === 'PHYSICAL'));
 
   return (
     <section className="home-card-panel" aria-labelledby="home-card-title">
       <div className="home-card-heading">
-        <h2 id="home-card-title">My card</h2>
+        <h2 id="home-card-title">My cards</h2>
         <Link className="text-link" to="/cards">
           All cards <ArrowUpRight size={16} aria-hidden="true" />
         </Link>
@@ -35,24 +34,35 @@ function HomeCard() {
         <ErrorState title="Card unavailable" onRetry={() => void query.refetch()} />
       ) : !query.data ? (
         <div className="home-card-skeleton" role="status">
-          <span className="sr-only">Loading your card</span>
+          <span className="sr-only">Loading your cards</span>
         </div>
-      ) : card ? (
+      ) : active?.length ? (
         <>
-          <Link className="home-card-link" to={`/cards/${card.id}`}>
-            <DashboardCard card={card} />
-          </Link>
-          <div className="home-card-meta">
-            <span>
-              <strong>{card.label}</strong>
-              <small>
-                {cardTypeNames[card.type]} · ending {card.last4}
-              </small>
-            </span>
-            <Link className="text-link" to={`/cards/${card.id}`}>
-              Manage card <ArrowUpRight size={16} aria-hidden="true" />
-            </Link>
-          </div>
+          <ul className="home-card-carousel" aria-label={`${active.length} active cards`}>
+            {active.map((card) => (
+              <li className="home-card-slide" key={card.id}>
+                <Link className="home-card-link" to={`/cards/${card.id}`}>
+                  <DashboardCard card={card} />
+                </Link>
+                <div className="home-card-meta">
+                  <span>
+                    <strong>{card.label}</strong>
+                    <small>
+                      {cardTypeNames[card.type]} · ending {card.last4}
+                    </small>
+                  </span>
+                  <Link className="text-link" to={`/cards/${card.id}`}>
+                    Manage card <ArrowUpRight size={16} aria-hidden="true" />
+                  </Link>
+                </div>
+              </li>
+            ))}
+          </ul>
+          {active.length > 1 && (
+            <p className="home-card-hint">
+              {active.length} active cards · Swipe or scroll to view each card
+            </p>
+          )}
         </>
       ) : (
         <div className="home-card-empty">

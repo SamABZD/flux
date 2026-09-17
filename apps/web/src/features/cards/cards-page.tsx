@@ -257,25 +257,31 @@ export function CardsPage() {
       ) : (
         <>
           {active.length > 0 && (
-            <nav className="card-selector" aria-label="Choose a card">
-              {active.map((card) => (
-                <Link
-                  key={card.id}
-                  to={`/cards/${card.id}`}
-                  aria-current={card.id === selected?.id ? 'true' : undefined}
-                  className="card-selector-item"
-                  onFocus={(e) =>
-                    e.currentTarget.scrollIntoView({ block: 'nearest', inline: 'nearest' })
-                  }
-                >
-                  <CardArt card={card} />
-                  <span className="card-selector-label">
-                    <strong>{card.label}</strong>
-                    <span>{cardTypeNames[card.type]}</span>
-                  </span>
-                </Link>
-              ))}
-            </nav>
+            <>
+              <p className="card-selector-summary">
+                {active.length} active {active.length === 1 ? 'card' : 'cards'}
+                {active.length > 1 && <span>Swipe to view each card</span>}
+              </p>
+              <nav className="card-selector" aria-label="Choose a card">
+                {active.map((card) => (
+                  <Link
+                    key={card.id}
+                    to={`/cards/${card.id}`}
+                    aria-current={card.id === selected?.id ? 'true' : undefined}
+                    className="card-selector-item"
+                    onFocus={(e) =>
+                      e.currentTarget.scrollIntoView({ block: 'nearest', inline: 'nearest' })
+                    }
+                  >
+                    <CardArt card={card} />
+                    <span className="card-selector-label">
+                      <strong>{card.label}</strong>
+                      <span>{cardTypeNames[card.type]}</span>
+                    </span>
+                  </Link>
+                ))}
+              </nav>
+            </>
           )}
           {selected ? (
             <SelectedCard key={selected.id} card={selected} />

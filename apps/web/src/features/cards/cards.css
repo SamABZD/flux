@@ -9,6 +9,9 @@
   margin: 0 -4px var(--space-8);
   scrollbar-width: thin;
 }
+.card-selector-summary {
+  display: none;
+}
 .card-selector-item {
   display: block;
   flex: 0 0 calc((100% - 3rem) / 3);
@@ -679,14 +682,30 @@
   }
 }
 @media (max-width: 48rem) {
+  .card-selector-summary {
+    display: flex;
+    justify-content: space-between;
+    gap: var(--space-4);
+    margin-bottom: var(--space-2);
+    font-size: var(--text-xs);
+  }
+  .card-selector-summary span {
+    color: var(--color-muted);
+  }
   .card-selector {
     gap: var(--space-4);
     margin-bottom: var(--space-6);
+    scroll-snap-type: inline mandatory;
+    scrollbar-width: none;
+  }
+  .card-selector::-webkit-scrollbar {
+    display: none;
   }
   .card-selector-item {
-    flex-basis: 86%;
-    min-width: 260px;
-    max-width: 340px;
+    flex-basis: 100%;
+    min-width: 100%;
+    max-width: none;
+    scroll-snap-stop: always;
   }
   .flux-card {
     padding: 22px;

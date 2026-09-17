@@ -189,7 +189,8 @@ p {
 @media (prefers-reduced-motion: no-preference) {
   html,
   .workspace-nav,
-  .card-selector {
+  .card-selector,
+  .home-card-carousel {
     scroll-behavior: smooth;
   }
 }
