@@ -1,0 +1,67 @@
+import type { AccountsResponse, Overview, Transaction } from '../src/features/finance/types';
+export const accountsFixture: AccountsResponse = {
+  user: { id: 'demo-alex', name: 'Alex Morgan', email: 'demo@flux.example' },
+  items: [
+    {
+      id: 'usd',
+      name: 'Everyday dollar',
+      currency: 'USD',
+      balanceMinor: 482040,
+      availableBalanceMinor: 480760,
+      pendingMinor: 1280,
+      identifier: 'DEMO USD 0842',
+      status: 'active',
+    },
+    {
+      id: 'eur',
+      name: 'Euro account',
+      currency: 'EUR',
+      balanceMinor: 284012,
+      availableBalanceMinor: 284012,
+      pendingMinor: 0,
+      identifier: 'DEMO EUR 1906',
+      status: 'active',
+    },
+  ],
+};
+export const transactionFixture: Transaction = {
+  transferId: null,
+  id: 'tx_0437',
+  accountId: 'usd',
+  merchant: { id: 'roadster', name: 'Roadster', icon: 'dining' },
+  amountMinor: 2240,
+  currency: 'USD',
+  direction: 'debit',
+  kind: 'purchase',
+  category: 'dining',
+  timestamp: '2026-09-14T10:42:00.000Z',
+  status: 'completed',
+  paymentMethod: 'card',
+  location: 'Beirut, Lebanon',
+  reference: 'FLX-202609-0437',
+  notes: 'Dinner with friends',
+  account: { id: 'usd', name: 'Everyday dollar', currency: 'USD', identifier: 'DEMO USD 0842' },
+};
+export const overviewFixture: Overview = {
+  ...accountsFixture,
+  asOf: '2026-09-14T12:00:00.000Z',
+  totalBalanceMinor: 794453,
+  reportingCurrency: 'USD',
+  fx: {
+    label: 'Illustrative demo rates',
+    asOf: '2026-09-14T12:00:00.000Z',
+    usdRateMicros: { USD: 1000000, EUR: 1100000, GBP: 1300000, AED: 272294 },
+  },
+  spending: {
+    accountId: 'usd',
+    currency: 'USD',
+    currentMinor: 2240,
+    previousMinor: 2000,
+    changePercent: 12,
+    month: '2026-09-01T00:00:00Z',
+    previousMonth: '2026-08-01T00:00:00Z',
+    throughDay: 14,
+    daily: [{ day: 14, amountMinor: 2240 }],
+    categories: [{ category: 'dining', amountMinor: 2240 }],
+  },
+};

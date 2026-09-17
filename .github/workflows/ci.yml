@@ -1,0 +1,44 @@
+name: Validate
+
+on:
+  push:
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  foundation:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:17-alpine
+        env:
+          POSTGRES_USER: flux_ci
+          POSTGRES_PASSWORD: ephemeral_ci_only
+          POSTGRES_DB: flux_ci
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U flux_ci -d flux_ci"
+          --health-interval 2s --health-timeout 3s --health-retries 15
+    env:
+      DATABASE_URL: postgresql://flux_ci:ephemeral_ci_only@127.0.0.1:5432/flux_ci
+      API_PORT: 3001
+      FRONTEND_URL: http://localhost:3000
+      WEB_API_BASE_URL: http://localhost:3001
+
+      CARD_ENCRYPTION_KEY: '4242424242424242424242424242424242424242424242424242424242424242'
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+      - run: npm install --global npm@11.19.1
+      - run: npm ci
+      - run: npm run check
+      - run: npm run db:deploy
+      - run: npm run db:seed
+      - run: npm run test:integration
+      - run: npm run test:e2e

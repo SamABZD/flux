@@ -1,0 +1,68 @@
+{
+  "name": "flux",
+  "version": "1.0.0",
+  "private": true,
+  "packageManager": "npm@11.19.1",
+  "description": "Flux — tested multi-currency financial demo with transfers, cards, and insights",
+  "workspaces": [
+    "apps/*"
+  ],
+  "engines": {
+    "node": ">=24.15.0 <25",
+    "npm": ">=11.12.1 <12"
+  },
+  "scripts": {
+    "setup": "node scripts/setup-env.mjs",
+    "postinstall": "npm run db:generate",
+    "dev": "concurrently --kill-others --names web,api \"npm run dev -w @flux/web\" \"npm run dev -w @flux/api\"",
+    "build": "npm run build --workspaces",
+    "build:web:production": "npm run build -w @flux/web",
+    "build:api:production": "npm run build -w @flux/api",
+    "start:production": "npm run start -w @flux/api",
+    "test": "npm run test --workspaces",
+    "typecheck": "npm run typecheck --workspaces",
+    "lint": "eslint . --max-warnings 0",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
+    "check": "npm run format:check && npm run lint && npm run typecheck && npm test && npm run build",
+    "db:up": "docker compose up -d --wait postgres",
+    "db:down": "docker compose down",
+    "db:generate": "npm run db:generate -w @flux/api",
+    "db:migrate": "npm run db:migrate -w @flux/api --",
+    "db:deploy": "npm run db:deploy -w @flux/api",
+    "db:status": "npm run db:status -w @flux/api",
+    "db:seed": "npm run db:seed -w @flux/api",
+    "demo:reset": "node apps/api/prisma/reset-demo.cjs",
+    "test:integration": "npm run test:integration -w @flux/api",
+    "test:e2e": "node scripts/run-e2e.cjs",
+    "test:production": "node scripts/verify-production.cjs"
+  },
+  "overrides": {
+    "multer": "^2.4.0",
+    "deepmerge-ts": "^8.0.2",
+    "mysql2": "^3.24.4"
+  },
+  "devDependencies": {
+    "@eslint/js": "^10.0.1",
+    "@types/jest": "^30.0.0",
+    "@types/node": "^24.0.0",
+    "concurrently": "^9.2.4",
+    "cypress": "16.1.0",
+    "dotenv": "^17.4.2",
+    "eslint": "^10.10.0",
+    "eslint-config-prettier": "^10.1.8",
+    "globals": "^16.0.0",
+    "jest": "^30.5.1",
+    "prettier": "^3.9.6",
+    "ts-jest": "^29.4.12",
+    "typescript": "~5.9.3",
+    "typescript-eslint": "^8.70.0"
+  },
+  "allowScripts": {
+    "cypress@16.1.0": true,
+    "@parcel/watcher@2.6.0": true,
+    "@prisma/engines@7.10.0": true,
+    "prisma@7.10.0": true,
+    "unrs-resolver@1.12.2": true
+  }
+}

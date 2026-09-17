@@ -1,0 +1,556 @@
+generator client {
+  provider     = "prisma-client"
+  output       = "../src/generated/prisma"
+  moduleFormat = "cjs"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum Currency {
+  USD
+  EUR
+  GBP
+  AED
+}
+
+enum AccountStatus {
+  active
+  frozen
+}
+
+enum TransactionStatus {
+  completed
+  pending
+  refunded
+  failed
+}
+
+enum TransactionDirection {
+  credit
+  debit
+}
+
+enum TransactionKind {
+  purchase
+  income
+  transfer
+  refund
+}
+
+enum PaymentMethod {
+  card
+  bank_transfer
+  direct_debit
+}
+
+enum TransactionCategory {
+  dining
+  transport
+  shopping
+  subscriptions
+  entertainment
+  travel
+  groceries
+  utilities
+  health
+  other
+  income
+  transfers
+}
+
+model User {
+  id              String           @id
+  name            String
+  email           String           @unique
+  accounts        Account[]
+  recipients      Recipient[]
+  sessions        DemoSession[]
+  quotes          TransferQuote[]
+  transfers       Transfer[]
+  cards           Card[]
+  cardPayments    CardPayment[]
+  cardRefunds     CardRefund[]
+  cardAuditEvents CardAuditEvent[]
+  budgets         Budget[]
+  subscriptions   Subscription[]
+}
+
+model Account {
+  id                  String          @id
+  userId              String
+  user                User            @relation(fields: [userId], references: [id])
+  name                String
+  currency            Currency
+  balanceMinor        Int
+  openingBalanceMinor Int
+  identifier          String
+  status              AccountStatus   @default(active)
+  transactions        Transaction[]
+  ledgerAccount       LedgerAccount?
+  outgoingQuotes      TransferQuote[] @relation("QuoteSource")
+  incomingQuotes      TransferQuote[] @relation("QuoteDestination")
+  outgoingTransfers   Transfer[]      @relation("TransferSource")
+  incomingTransfers   Transfer[]      @relation("TransferDestination")
+  cardPayments        CardPayment[]
+  subscriptions       Subscription[]
+
+  @@unique([id, currency])
+  @@index([userId])
+}
+
+model Merchant {
+  id           String        @id
+  name         String
+  icon         String
+  transactions Transaction[]
+  subscriptions Subscription[]
+}
+
+model Budget {
+  id String @id @default(uuid())
+  userId String
+  user User @relation(fields: [userId], references: [id])
+  category TransactionCategory
+  currency Currency
+  createdMonth DateTime @db.Date
+  archivedAt DateTime? @db.Timestamptz(3)
+  revision Int @default(1)
+  createKey String
+  requestHash String
+  createdAt DateTime @default(now()) @db.Timestamptz(3)
+  updatedAt DateTime @updatedAt @db.Timestamptz(3)
+  allocations BudgetAllocation[]
+  @@unique([userId, createKey])
+  @@index([userId, category])
+}
+model BudgetAllocation {
+  id String @id @default(uuid())
+  budgetId String
+  budget Budget @relation(fields: [budgetId], references: [id])
+  month DateTime @db.Date
+  amountMinor Int
+  enabled Boolean @default(true)
+  @@unique([budgetId, month])
+}
+enum SubscriptionCadence {
+  WEEKLY
+  MONTHLY
+  YEARLY
+}
+enum SubscriptionStatus {
+  ACTIVE
+  PAUSED
+  CANCELLED
+}
+model Subscription {
+  id String @id @default(uuid())
+  userId String
+  user User @relation(fields: [userId], references: [id])
+  accountId String
+  account Account @relation(fields: [accountId, currency], references: [id, currency])
+  merchantId String
+  merchant Merchant @relation(fields: [merchantId], references: [id])
+  label String @db.VarChar(60)
+  currency Currency
+  amountMinor Int
+  cadence SubscriptionCadence
+  anchorDate DateTime @db.Date
+  status SubscriptionStatus @default(ACTIVE)
+  source String @default("MANUAL")
+  revision Int @default(1)
+  createKey String
+  requestHash String
+  createdAt DateTime @default(now()) @db.Timestamptz(3)
+  updatedAt DateTime @updatedAt @db.Timestamptz(3)
+  @@unique([userId, createKey])
+  @@index([userId, status])
+  @@index([merchantId, accountId])
+}
+
+model Transaction {
+  id            String               @id
+  accountId     String
+  currency      Currency
+  account       Account              @relation(fields: [accountId, currency], references: [id, currency])
+  merchantId    String
+  merchant      Merchant             @relation(fields: [merchantId], references: [id])
+  amountMinor   Int
+  direction     TransactionDirection
+  kind          TransactionKind
+  category      TransactionCategory
+  timestamp     DateTime             @db.Timestamptz(3)
+  status        TransactionStatus
+  paymentMethod PaymentMethod
+  location      String
+  reference     String               @unique
+  notes         String
+  transferId    String?
+  transfer      Transfer?            @relation(fields: [transferId], references: [id])
+  cardPaymentId String?
+  cardPayment   CardPayment?         @relation(fields: [cardPaymentId], references: [id])
+  cardRefundId  String?              @unique
+  cardRefund    CardRefund?          @relation(fields: [cardRefundId], references: [id])
+
+  @@unique([transferId, accountId])
+  @@unique([cardPaymentId, direction])
+  @@index([accountId, timestamp(sort: Desc), id])
+  @@index([timestamp(sort: Desc), id])
+  @@index([category, status, direction])
+}
+
+enum RecipientType {
+  person
+  business
+}
+
+enum RecipientStatus {
+  active
+  blocked
+}
+
+enum TransferKind {
+  send
+  exchange
+}
+
+enum TransferStatus {
+  PROCESSING
+  COMPLETED
+  FAILED
+}
+
+enum LedgerAccountKind {
+  customer
+  fx
+  fee
+  external
+  opening
+}
+
+model DemoSession {
+  tokenHash String   @id
+  userId    String
+  user      User     @relation(fields: [userId], references: [id])
+  expiresAt DateTime @db.Timestamptz(3)
+
+  @@index([expiresAt])
+}
+
+model Recipient {
+  id                  String          @id @default(uuid())
+  userId              String
+  user                User            @relation(fields: [userId], references: [id])
+  name                String
+  type                RecipientType
+  country             String
+  preferredCurrency   Currency
+  supportedCurrencies Currency[]
+  bankName            String
+  accountIdentifier   String
+  status              RecipientStatus @default(active)
+  lastUsedAt          DateTime?       @db.Timestamptz(3)
+  bankRoute           String          @default("demo-clearing")
+  createdAt           DateTime        @default(now()) @db.Timestamptz(3)
+  quotes              TransferQuote[]
+  transfers           Transfer[]
+
+  @@index([userId, lastUsedAt(sort: Desc)])
+}
+
+model FxRate {
+  currency  Currency @id
+  usdMicros Int
+  updatedAt DateTime @default(now()) @db.Timestamptz(3)
+}
+
+model TransferQuote {
+  id                     String       @id @default(uuid())
+  userId                 String
+  user                   User         @relation(fields: [userId], references: [id])
+  kind                   TransferKind
+  recipientId            String?
+  recipient              Recipient?   @relation(fields: [recipientId], references: [id])
+  sourceAccountId        String
+  sourceAccount          Account      @relation("QuoteSource", fields: [sourceAccountId], references: [id])
+  destinationAccountId   String?
+  destinationAccount     Account?     @relation("QuoteDestination", fields: [destinationAccountId], references: [id])
+  sourceCurrency         Currency
+  destinationCurrency    Currency
+  sourceAmountMinor      Int
+  destinationAmountMinor Int
+  feeMinor               Int
+  totalDebitMinor        Int
+  sourceUsdMicros        Int
+  destinationUsdMicros   Int
+  rateLabel              String
+  createdAt              DateTime     @default(now()) @db.Timestamptz(3)
+  expiresAt              DateTime     @db.Timestamptz(3)
+  transfer               Transfer?
+
+  @@index([userId, expiresAt])
+}
+
+model Transfer {
+  id                     String         @id @default(uuid())
+  userId                 String
+  user                   User           @relation(fields: [userId], references: [id])
+  kind                   TransferKind
+  recipientId            String?
+  recipient              Recipient?     @relation(fields: [recipientId], references: [id])
+  sourceAccountId        String
+  sourceAccount          Account        @relation("TransferSource", fields: [sourceAccountId], references: [id])
+  destinationAccountId   String?
+  destinationAccount     Account?       @relation("TransferDestination", fields: [destinationAccountId], references: [id])
+  quoteId                String         @unique
+  quote                  TransferQuote  @relation(fields: [quoteId], references: [id])
+  idempotencyKey         String
+  requestHash            String
+  sourceCurrency         Currency
+  destinationCurrency    Currency
+  sourceAmountMinor      Int
+  destinationAmountMinor Int
+  feeMinor               Int
+  totalDebitMinor        Int
+  rateLabel              String
+  status                 TransferStatus
+  reference              String         @unique
+  note                   String
+  createdAt              DateTime       @default(now()) @db.Timestamptz(3)
+  updatedAt              DateTime       @updatedAt @db.Timestamptz(3)
+  completedAt            DateTime?      @db.Timestamptz(3)
+  failureReason          String?
+  journal                LedgerJournal?
+  transactions           Transaction[]
+
+  @@unique([userId, idempotencyKey])
+  @@index([userId, createdAt(sort: Desc)])
+}
+
+model LedgerAccount {
+  id        String            @id
+  currency  Currency
+  kind      LedgerAccountKind
+  accountId String?           @unique
+  account   Account?          @relation(fields: [accountId], references: [id])
+  entries   LedgerEntry[]
+
+  @@unique([id, currency])
+}
+
+model LedgerJournal {
+  id            String        @id @default(uuid())
+  transferId    String?       @unique
+  transfer      Transfer?     @relation(fields: [transferId], references: [id])
+  reference     String        @unique
+  postedAt      DateTime      @default(now()) @db.Timestamptz(3)
+  entries       LedgerEntry[]
+  cardPaymentId String?       @unique
+  cardPayment   CardPayment?  @relation(fields: [cardPaymentId], references: [id])
+  cardRefundId  String?       @unique
+  cardRefund    CardRefund?   @relation(fields: [cardRefundId], references: [id])
+}
+
+enum CardType {
+  PHYSICAL
+  VIRTUAL
+  SINGLE_USE
+}
+
+enum CardStatus {
+  ACTIVE
+  FROZEN
+  TERMINATED
+  EXPIRED
+  PENDING
+}
+
+enum CardPaymentType {
+  ONLINE
+  CONTACTLESS
+  CHIP_AND_PIN
+  MAGSTRIPE
+  ATM
+  RECURRING
+  DIGITAL_WALLET
+}
+
+enum CardPaymentStatus {
+  PENDING
+  AUTHORIZED
+  COMPLETED
+  DECLINED
+  REFUNDED
+  REVERSED
+}
+
+enum CardDeclineReason {
+  CARD_FROZEN
+  CARD_TERMINATED
+  CARD_EXPIRED
+  CARD_PENDING
+  INVALID_CARD
+  ONLINE_PAYMENTS_DISABLED
+  CONTACTLESS_DISABLED
+  ATM_DISABLED
+  MAGSTRIPE_DISABLED
+  LOCATION_MISMATCH
+  LOCATION_REQUIRED
+  SPENDING_LIMIT_EXCEEDED
+  INSUFFICIENT_FUNDS
+  UNSUPPORTED_CURRENCY
+  STALE_CREDENTIALS
+  SINGLE_USE_RECURRING_NOT_ALLOWED
+  SINGLE_USE_ATM_NOT_ALLOWED
+  SINGLE_USE_PAYMENT_METHOD_NOT_ALLOWED
+  SINGLE_USE_WALLET_NOT_ALLOWED
+  VIRTUAL_ATM_NOT_ALLOWED
+  VIRTUAL_PAYMENT_METHOD_NOT_ALLOWED
+  WALLET_NOT_ENROLLED
+}
+
+enum CardAuditAction {
+  CREATED
+  FROZEN
+  UNFROZEN
+  TERMINATED
+  LABEL_CHANGED
+  LIMIT_CHANGED
+  SECURITY_CHANGED
+  DETAILS_REVEALED
+  REVEAL_DENIED
+  CREDENTIALS_ROTATED
+  WALLET_ENROLLED
+  WALLET_ENROLLMENT_DECLINED
+  PAYMENT_COMPLETED
+  PAYMENT_DECLINED
+  PAYMENT_REFUNDED
+}
+
+model Card {
+  id                     String           @id @default(uuid())
+  userId                 String
+  user                   User             @relation(fields: [userId], references: [id])
+  type                   CardType
+  status                 CardStatus       @default(ACTIVE)
+  label                  String           @db.VarChar(32)
+  network                String           @default("FLUX_DEMO")
+  last4                  String           @db.VarChar(4)
+  expiryMonth            Int
+  expiryYear             Int
+  monthlyLimitMinor      Int?
+  onlinePayments         Boolean          @default(true)
+  contactlessPayments    Boolean          @default(false)
+  atmWithdrawals         Boolean          @default(false)
+  magstripePayments      Boolean          @default(false)
+  locationSecurity       Boolean          @default(false)
+  walletEnrolled         Boolean          @default(false)
+  credentialVersion      Int              @default(1)
+  lastCredentialRotation DateTime         @default(now()) @db.Timestamptz(3)
+  createdAt              DateTime         @default(now()) @db.Timestamptz(3)
+  updatedAt              DateTime         @updatedAt @db.Timestamptz(3)
+  terminatedAt           DateTime?        @db.Timestamptz(3)
+  credentials            CardCredential?
+  payments               CardPayment[]
+  auditEvents            CardAuditEvent[]
+
+  @@index([userId, status, createdAt])
+}
+
+model CardCredential {
+  cardId          String   @id
+  card            Card     @relation(fields: [cardId], references: [id])
+  encryptedNumber String
+  encryptedCvv    String
+  updatedAt       DateTime @updatedAt @db.Timestamptz(3)
+}
+
+model CardPayment {
+  id                   String              @id @default(uuid())
+  cardId               String
+  card                 Card                @relation(fields: [cardId], references: [id])
+  userId               String
+  user                 User                @relation(fields: [userId], references: [id])
+  merchantName         String              @db.VarChar(80)
+  merchantCategory     TransactionCategory
+  amountMinor          Int
+  currency             String              @db.VarChar(3)
+  paymentType          CardPaymentType
+  isSubscription       Boolean             @default(false)
+  requiresPin          Boolean             @default(false)
+  merchantLocation     String?             @db.VarChar(2)
+  cardholderLocation   String?             @db.VarChar(2)
+  status               CardPaymentStatus
+  declineReason        CardDeclineReason?
+  accountId            String?
+  account              Account?            @relation(fields: [accountId], references: [id])
+  billingCurrency      Currency?
+  billingAmountMinor   Int?
+  principalMinor       Int?
+  feeMinor             Int?
+  sourceUsdMicros      Int?
+  destinationUsdMicros Int?
+  rateLabel            String?
+  fundingReason        String?
+  limitAmountUsdMinor  Int?
+  credentialVersion    Int
+  cardLast4            String              @db.VarChar(4)
+  idempotencyKey       String
+  requestHash          String
+  reference            String              @unique
+  note                 String              @default("") @db.VarChar(140)
+  createdAt            DateTime            @default(now()) @db.Timestamptz(3)
+  authorizedAt         DateTime?           @db.Timestamptz(3)
+  completedAt          DateTime?           @db.Timestamptz(3)
+  refundedAt           DateTime?           @db.Timestamptz(3)
+  journal              LedgerJournal?
+  transactions         Transaction[]
+  refund               CardRefund?
+
+  @@unique([userId, idempotencyKey])
+  @@index([cardId, createdAt(sort: Desc)])
+  @@index([userId, createdAt(sort: Desc)])
+}
+
+model CardRefund {
+  id             String         @id @default(uuid())
+  userId         String
+  user           User           @relation(fields: [userId], references: [id])
+  cardPaymentId  String         @unique
+  payment        CardPayment    @relation(fields: [cardPaymentId], references: [id])
+  idempotencyKey String
+  requestHash    String
+  reference      String         @unique
+  reason         String         @db.VarChar(120)
+  createdAt      DateTime       @default(now()) @db.Timestamptz(3)
+  journal        LedgerJournal?
+  transaction    Transaction?
+
+  @@unique([userId, idempotencyKey])
+}
+
+model CardAuditEvent {
+  id        String          @id @default(uuid())
+  userId    String
+  user      User            @relation(fields: [userId], references: [id])
+  cardId    String
+  card      Card            @relation(fields: [cardId], references: [id])
+  action    CardAuditAction
+  metadata  Json
+  createdAt DateTime        @default(now()) @db.Timestamptz(3)
+
+  @@index([cardId, createdAt(sort: Desc)])
+}
+
+model LedgerEntry {
+  id              String        @id @default(uuid())
+  journalId       String
+  journal         LedgerJournal @relation(fields: [journalId], references: [id])
+  ledgerAccountId String
+  currency        Currency
+  ledgerAccount   LedgerAccount @relation(fields: [ledgerAccountId, currency], references: [id, currency])
+  amountMinor     Int
+
+  @@index([ledgerAccountId, journalId])
+}
