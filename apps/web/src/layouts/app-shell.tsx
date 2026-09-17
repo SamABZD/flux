@@ -1,13 +1,6 @@
 import { Suspense, useEffect, useRef, useState } from 'react';
 import { Link, NavLink, Outlet, useLocation } from 'react-router';
-import {
-  ArrowUpRight,
-  Bell,
-  MagnifyingGlass,
-  SquaresFour,
-  CaretDown,
-  GearSix,
-} from '@phosphor-icons/react';
+import { Bell, MagnifyingGlass, SquaresFour, CaretDown, GearSix } from '@phosphor-icons/react';
 import { Brand } from './brand';
 import { Avatar } from '@/design-system/avatar';
 import { Badge } from '@/design-system/badge';
@@ -136,9 +129,6 @@ export function AppShell() {
               <span className="status-dot" />
               Demo workspace <span className="footer-divider">/</span> No real accounts or money.
             </span>
-            <Link to="/design-system">
-              Built with care <ArrowUpRight size={14} aria-hidden="true" />
-            </Link>
           </footer>
           <nav className="mobile-nav" aria-label="Mobile navigation">
             {primaryDestinations.map(({ path, label, icon: Icon }) => (
