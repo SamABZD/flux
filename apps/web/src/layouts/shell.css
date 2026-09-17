@@ -252,10 +252,12 @@
     position: sticky;
     top: 0;
     z-index: var(--z-sticky);
+    padding-top: env(safe-area-inset-top);
   }
   .app-header-inner {
     height: 72px;
-    padding-inline: var(--space-4);
+    padding-inline: max(var(--space-4), env(safe-area-inset-left))
+      max(var(--space-4), env(safe-area-inset-right));
     gap: var(--space-2);
   }
   .brand {
@@ -274,7 +276,8 @@
     padding-inline: var(--space-2);
   }
   .workspace-bar-inner {
-    padding-inline: var(--space-4);
+    padding-inline: max(var(--space-4), env(safe-area-inset-left))
+      max(var(--space-4), env(safe-area-inset-right));
     gap: 0;
     min-height: 52px;
   }
@@ -283,16 +286,21 @@
     overflow-x: auto;
     min-width: 0;
     scrollbar-width: none;
+    overscroll-behavior-inline: contain;
+    scroll-snap-type: inline proximity;
+    -webkit-overflow-scrolling: touch;
   }
   .workspace-nav a {
     min-height: 52px;
     white-space: nowrap;
+    scroll-snap-align: start;
   }
   .workspace-settings {
     display: none;
   }
   .app-main {
-    padding: var(--space-8) var(--space-4);
+    padding: var(--space-6) max(var(--space-4), env(safe-area-inset-right)) var(--space-8)
+      max(var(--space-4), env(safe-area-inset-left));
   }
   .app-footer {
     width: calc(100% - 32px);
@@ -310,7 +318,9 @@
     z-index: var(--z-sticky);
     display: grid;
     grid-template-columns: repeat(5, 1fr);
-    padding: var(--space-2) var(--space-2) calc(var(--space-2) + env(safe-area-inset-bottom));
+    padding: var(--space-2) max(var(--space-2), env(safe-area-inset-right))
+      calc(var(--space-2) + env(safe-area-inset-bottom))
+      max(var(--space-2), env(safe-area-inset-left));
     background: var(--color-surface);
     border-top: var(--border);
   }

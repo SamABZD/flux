@@ -3,6 +3,8 @@
   gap: var(--space-6);
   overflow-x: auto;
   scroll-snap-type: x proximity;
+  overscroll-behavior-inline: contain;
+  -webkit-overflow-scrolling: touch;
   padding: 4px 4px var(--space-4);
   margin: 0 -4px var(--space-8);
   scrollbar-width: thin;

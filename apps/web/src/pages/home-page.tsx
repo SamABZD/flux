@@ -77,12 +77,13 @@ export function HomePage() {
   const data = overview.data;
   return (
     <>
-      <PageHeader
-        title="Your money, in focus."
-        description={`Welcome back, ${accounts.data?.user.name.split(' ')[0] ?? 'Alex'}. Here’s where you stand.`}
-        actions={<Avatar name={accounts.data?.user.name ?? 'Alex Morgan'} />}
-      />
       <div className="home-grid finance-home">
+        <PageHeader
+          title="Your money, in focus."
+          description={`Welcome back, ${accounts.data?.user.name.split(' ')[0] ?? 'Alex'}. Here’s where you stand.`}
+          actions={<Avatar name={accounts.data?.user.name ?? 'Alex Morgan'} />}
+        />
+        <HomeCard />
         <section className="balance-panel" aria-label="Balance overview">
           <div className="balance-top">
             <span>Total balance · USD equivalent</span>
@@ -139,7 +140,6 @@ export function HomePage() {
             />
           )}
         </section>
-        <HomeCard />
       </div>
       <div className="home-lower-grid">
         <section className="finance-activity">
