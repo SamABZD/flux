@@ -41,6 +41,18 @@ describe('production journeys', () => {
     cy.location('pathname').should('equal', '/home');
     cy.contains('h1', 'Your money, in focus.').should('be.visible');
     cy.get('.balance-value').should('be.visible');
+    cy.get('.home-card-panel').within(() => {
+      cy.contains('h2', 'My card').should('be.visible');
+      cy.get('.dashboard-card').should('be.visible');
+      cy.contains('Everyday').should('be.visible');
+      cy.contains('Manage card').should('have.attr', 'href', '/cards/card-physical');
+    });
+    cy.contains('How this total is calculated').should('not.exist');
+    cy.document().then((document) => {
+      expect(document.documentElement.scrollWidth).to.be.at.most(
+        document.documentElement.clientWidth,
+      );
+    });
   });
 
   it('2 — opens an account, searches and filters activity, then persists a category change', () => {

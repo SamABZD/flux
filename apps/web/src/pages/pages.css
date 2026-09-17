@@ -65,47 +65,54 @@
 .balance-links a:hover {
   color: var(--color-accent-hover);
 }
-.card-panel {
-  padding: var(--space-2) 0 0 var(--space-4);
-}
-.card-panel > p {
-  font-size: var(--text-sm);
-  margin-top: var(--space-6);
-}
-.card-preview {
+.dashboard-card {
   position: relative;
   overflow: hidden;
   width: 100%;
-  max-width: 340px;
   aspect-ratio: 1.586;
   border-radius: var(--radius-panel);
-  border: 1px solid var(--color-control-border);
-  background: var(--color-elevated);
+  border: 1px solid #46505d;
+  background: #20262e;
   padding: var(--space-6);
   display: flex;
   flex-direction: column;
-  justify-content: space-between;
   isolation: isolate;
+  transition:
+    border-color var(--duration-fast),
+    transform var(--duration-base) var(--ease-out),
+    filter var(--duration-fast);
 }
-.card-panel .card-preview {
-  margin-top: var(--space-6);
+.dashboard-card--virtual {
+  background: #252a32;
 }
-.card-preview-top,
-.card-preview-bottom {
+.dashboard-card--single_use {
+  background: #172825;
+  border-color: #45635b;
+}
+.dashboard-card--frozen {
+  filter: saturate(0.15);
+}
+.dashboard-card-top,
+.dashboard-card-bottom {
   display: flex;
   justify-content: space-between;
   align-items: center;
+  position: relative;
+  z-index: 1;
 }
 .card-wordmark {
   font-size: 26px;
   font-weight: var(--weight-semibold);
   letter-spacing: -0.055em;
 }
-.card-preview-top > span:last-child {
+.dashboard-card-top > span:last-child {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
   font-size: var(--text-xs);
   color: var(--color-muted);
 }
-.card-preview-mark {
+.dashboard-card-mark {
   position: absolute;
   z-index: -1;
   width: 140px;
@@ -114,7 +121,7 @@
   right: 20px;
   transform: rotate(20deg);
 }
-.card-preview-mark span {
+.dashboard-card-mark span {
   position: absolute;
   height: 230px;
   width: 53px;
@@ -122,30 +129,61 @@
   transform: skew(-23deg);
   opacity: 0.4;
 }
-.card-preview-mark span:first-child {
+.dashboard-card-mark span:first-child {
   left: 0;
   top: 32px;
 }
-.card-preview-mark span:last-child {
+.dashboard-card-mark span:last-child {
   right: 0;
 }
 .card-chip {
   display: inline-flex;
   align-items: center;
   gap: var(--space-2);
-  color: var(--color-muted);
+  color: #d1d7df;
+}
+.dashboard-card-middle {
+  display: flex;
+  align-items: center;
+  flex: 1;
+  min-height: 42px;
+  position: relative;
+  z-index: 1;
+}
+.dashboard-card-number {
+  position: relative;
+  z-index: 1;
+  margin-bottom: var(--space-4);
+  font-size: clamp(0.9rem, 1.35vw, 1.125rem);
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0.06em;
+  white-space: nowrap;
+}
+.dashboard-card-bottom {
+  align-items: flex-end;
+  gap: var(--space-3);
+  font-size: 0.56rem;
+  letter-spacing: 0.05em;
+  line-height: 1.35;
+}
+.dashboard-card-bottom > span:not(.dashboard-card-holder) {
+  display: flex;
+  flex-direction: column;
+}
+.dashboard-card-bottom strong {
+  color: var(--color-text);
+  font-size: 0.62rem;
+  font-weight: var(--weight-medium);
+}
+.dashboard-card-holder {
+  max-width: 52%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 0.62rem;
 }
 .card-network {
-  display: flex;
-}
-.card-network i {
-  width: 27px;
-  height: 27px;
-  border-radius: var(--radius-round);
-  border: 1px solid var(--color-muted);
-}
-.card-network i + i {
-  margin-left: -11px;
+  text-align: right;
 }
 .activity-section {
   min-width: 0;
@@ -544,7 +582,6 @@
   .balance-panel {
     padding: var(--space-6);
   }
-  .card-panel,
   .planning-section {
     padding-left: 0;
   }
@@ -572,11 +609,8 @@
   .home-grid .activity-section {
     order: 1;
   }
-  .home-grid .card-panel {
-    order: 2;
-  }
   .home-grid .planning-section {
-    order: 3;
+    order: 2;
   }
   .page-header:has(.button) {
     flex-direction: column;
@@ -601,15 +635,8 @@
   .balance-links a > svg:last-child {
     margin-left: 0;
   }
-  .card-panel {
-    border-top: var(--border);
-    padding-top: var(--space-6);
-  }
-  .card-preview {
-    max-width: 360px;
-  }
-  .card-panel .card-preview {
-    margin-inline: auto;
+  .dashboard-card {
+    padding: var(--space-4);
   }
   .planning-section {
     margin: 0;

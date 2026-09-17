@@ -224,7 +224,6 @@ function SelectedCard({ card }: { card: Card }) {
 export function CardsPage() {
   const { id } = useParams();
   const query = useGetCardsQuery(undefined, {
-    refetchOnMountOrArgChange: true,
     refetchOnFocus: true,
   });
   const [create, setCreate] = useState(false);

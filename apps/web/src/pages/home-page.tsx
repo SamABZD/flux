@@ -12,6 +12,59 @@ import { AccountSelector } from '@/features/finance/account-selector';
 import { QuickActions } from '@/features/finance/quick-actions';
 import { RecentActivity } from '@/features/finance/recent-activity';
 import { SpendingPreview } from '@/features/finance/spending-preview';
+import { useGetCardsQuery } from '@/features/cards/cards-api';
+import { cardTypeNames } from '@/features/cards/types';
+import { DashboardCard } from '@/features/workspace/dashboard-card';
+
+function HomeCard() {
+  const query = useGetCardsQuery();
+  const available = query.data?.filter(
+    (card) => card.status !== 'TERMINATED' && card.status !== 'EXPIRED',
+  );
+  const card = available?.find((item) => item.type === 'PHYSICAL') ?? available?.[0];
+
+  return (
+    <section className="home-card-panel" aria-labelledby="home-card-title">
+      <div className="home-card-heading">
+        <h2 id="home-card-title">My card</h2>
+        <Link className="text-link" to="/cards">
+          All cards <ArrowUpRight size={16} aria-hidden="true" />
+        </Link>
+      </div>
+      {query.isError ? (
+        <ErrorState title="Card unavailable" onRetry={() => void query.refetch()} />
+      ) : !query.data ? (
+        <div className="home-card-skeleton" role="status">
+          <span className="sr-only">Loading your card</span>
+        </div>
+      ) : card ? (
+        <>
+          <Link className="home-card-link" to={`/cards/${card.id}`}>
+            <DashboardCard card={card} />
+          </Link>
+          <div className="home-card-meta">
+            <span>
+              <strong>{card.label}</strong>
+              <small>
+                {cardTypeNames[card.type]} · ending {card.last4}
+              </small>
+            </span>
+            <Link className="text-link" to={`/cards/${card.id}`}>
+              Manage card <ArrowUpRight size={16} aria-hidden="true" />
+            </Link>
+          </div>
+        </>
+      ) : (
+        <div className="home-card-empty">
+          <p>No active cards</p>
+          <Link className="text-link" to="/cards">
+            Add a card <ArrowUpRight size={16} aria-hidden="true" />
+          </Link>
+        </div>
+      )}
+    </section>
+  );
+}
 
 export function HomePage() {
   const [params, setParams] = useSearchParams();
@@ -65,13 +118,6 @@ export function HomePage() {
               <p className="finance-caption">
                 Across your four currency accounts. Illustrative demo rates.
               </p>
-              <details className="fx-details">
-                <summary>How this total is calculated</summary>
-                <p>
-                  Each balance is converted to USD, then added. 1 EUR = 1.10 USD · 1 GBP = 1.30 USD
-                  · 1 AED = 0.272294 USD. Fixed for this demo as of 14 September 2026.
-                </p>
-              </details>
             </>
           )}
           <QuickActions />
@@ -93,22 +139,25 @@ export function HomePage() {
             />
           )}
         </section>
+        <HomeCard />
+      </div>
+      <div className="home-lower-grid">
+        <section className="finance-activity">
+          <SectionHeader
+            title="Recent transactions"
+            description={`${selected.toUpperCase()} account · latest activity`}
+            action={
+              <Link className="text-link" to={`/transactions?account=${selected}`}>
+                See all transactions <ArrowUpRight size={16} aria-hidden="true" />
+              </Link>
+            }
+          />
+          <RecentActivity account={selected} />
+        </section>
         <section className="spending-panel" aria-label="Monthly spending">
           <SpendingPreview account={selected} />
         </section>
       </div>
-      <section className="finance-activity">
-        <SectionHeader
-          title="Recent transactions"
-          description={`${selected.toUpperCase()} account · latest activity`}
-          action={
-            <Link className="text-link" to={`/transactions?account=${selected}`}>
-              See all transactions <ArrowUpRight size={16} aria-hidden="true" />
-            </Link>
-          }
-        />
-        <RecentActivity account={selected} />
-      </section>
       <p className="finance-footnote">
         Demo snapshot · 14 September 2026. All balances and transactions are fictional. Times shown
         in UTC.
